@@ -1,0 +1,197 @@
+%
+% Complete documentation on the extended LaTeX markup used for Insight
+% documentation is available in ``Documenting Insight'', which is part
+% of the standard documentation for Insight.  It may be found online
+% at:
+%
+%     http://www.itk.org/
+
+\documentclass{InsightArticle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+% to be able to use options in graphics
+\usepackage{graphicx}
+% for pseudo code
+\usepackage{listings}
+% subfigures
+\usepackage{subfigure}
+
+
+%  This is a template for Papers to the Insight Journal. 
+%  It is comparable to a technical report format.
+
+% The title should be descriptive enough for people to be able to find
+% the relevant document. 
+\title{Exponentiation filters}
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{3227}
+
+% Increment the release number whenever significant changes are made.
+% The author and/or editor can define 'significant' however they like.
+% \release{0.00}
+
+% At minimum, give your name and an email address.  You can include a
+% snail-mail address if you like.
+\author{Ga\"etan Lehmann}
+\authoraddress{INRA, UMR 1198; ENVA; CNRS, FRE 2857, Biologie du D\'eveloppement et Reproduction, Jouy en Josas, F-78350, France.}
+
+\begin{document}
+
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+\IJhandlefooter{\IJhandlerIDnumber}
+
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+\begin{abstract}
+\noindent
+Two simple filters are contributed to compute the exponential of an image: the first one to raise the image to the power of a constant, the
+other one to raise the image to the power of the values provided in another image.
+\end{abstract}
+
+\IJhandlenote{\IJhandlerIDnumber}
+
+\tableofcontents
+
+
+\section{ConstantPowImageFilter}
+
+\verb$ConstantPowImageFilter$ raises the input image to the power of a constant provided by the user.
+Here is an example of usage:
+\small \begin{verbatim}
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkSimpleFilterWatcher.h"
+
+#include "itkConstantPowImageFilter.h"
+
+
+int main(int argc, char * argv[])
+{
+
+  if( argc != 4 )
+    {
+    std::cerr << "usage: " << argv[0] << " intput output constant" << std::endl;
+    std::cerr << " input: the input image" << std::endl;
+    std::cerr << " output: the output image" << std::endl;
+    // std::cerr << "  : " << std::endl;
+    exit(1);
+    }
+
+  const int dim = 2;
+  
+  typedef unsigned char PType;
+  typedef itk::Image< PType, dim > IType;
+  typedef itk::Image< unsigned short, dim > OType;
+
+  typedef itk::ImageFileReader< IType > ReaderType;
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[1] );
+
+  typedef itk::ConstantPowImageFilter< IType, double, OType > FilterType;
+  FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( reader->GetOutput() );
+  filter->SetConstant( atof(argv[3]) );
+  itk::SimpleFilterWatcher watcher(filter, "filter");
+
+  typedef itk::ImageFileWriter< OType > WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetInput( filter->GetOutput() );
+  writer->SetFileName( argv[2] );
+  writer->Update();
+
+  return 0;
+}
+\end{verbatim} \normalsize
+
+\section{PowImageFilter}
+\verb$PowImageFilter$ raises the first input image to the power of the values of the second image. Here is an example of usage:
+\small \begin{verbatim}
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkSimpleFilterWatcher.h"
+
+#include "itkPowImageFilter.h"
+
+
+int main(int argc, char * argv[])
+{
+
+  if( argc != 4 )
+    {
+    std::cerr << "usage: " << argv[0] << " intput pow_input output" << std::endl;
+    std::cerr << " input: the input image" << std::endl;
+    std::cerr << " output: the output image" << std::endl;
+    // std::cerr << "  : " << std::endl;
+    exit(1);
+    }
+
+  const int dim = 2;
+  
+  typedef unsigned char PType;
+  typedef itk::Image< PType, dim > IType;
+  typedef itk::Image< unsigned short, dim > OType;
+
+  typedef itk::ImageFileReader< IType > ReaderType;
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[1] );
+
+  ReaderType::Pointer reader2 = ReaderType::New();
+  reader2->SetFileName( argv[2] );
+
+  typedef itk::PowImageFilter< IType, IType, OType > FilterType;
+  FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( reader->GetOutput() );
+  filter->SetInput( 1, reader2->GetOutput() );
+  itk::SimpleFilterWatcher watcher(filter, "filter");
+
+  typedef itk::ImageFileWriter< OType > WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetInput( filter->GetOutput() );
+  writer->SetFileName( argv[3] );
+  writer->Update();
+
+  return 0;
+}
+\end{verbatim} \normalsize
+
+\section{Wrapping}
+
+The wrappers for WrapITK for the two new filters are provided in the Wrapping directory.
+
+\appendix
+
+
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
+\nocite{ITKSoftwareGuide}
+
+\end{document}
+

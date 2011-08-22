@@ -1,0 +1,7 @@
+WRAP_CLASS("itk::ConstantPowImageFilter" POINTER_WITH_SUPERCLASS)
+  FOREACH(d ${WRAP_ITK_DIMS})
+    FOREACH(t ${WRAP_ITK_SCALAR})
+      WRAP_TEMPLATE("${ITKM_I${t}${d}}${ITKM_D}${ITKM_I${t}${d}}"    "${ITKT_I${t}${d}},${ITKT_D},${ITKT_I${t}${d}}")
+    ENDFOREACH(t)
+  ENDFOREACH(d)
+END_WRAP_CLASS()
